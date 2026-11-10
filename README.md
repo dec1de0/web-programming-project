@@ -4,6 +4,12 @@ BitRate is a small REST API for checking Python code and basic UI design details
 
 The checks use simple rules. The API **does not run submitted Python code**. For design audits, it checks the element details you send in the request.
 
+## What is this project for?
+
+BitRate helps you find simple problems in code or UI elements and track which problems you have fixed. For example, it can find an `eval()` call in Python code or a button without a label. It creates a finding for each problem and shows a score in a report.
+
+This project is a **backend API**, so you use it through Swagger UI at `/docs`. It does not use AI, scan a website from a URL, or save data permanently. Its main purpose is to demonstrate a complete REST API with connected resources and useful business rules.
+
 ## Run the project
 
 You need Python 3.10 or newer. Run these commands from the project folder.
