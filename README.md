@@ -1,10 +1,12 @@
 # BitRate API
 
-Учебный REST API для проверки небольших фрагментов Python-кода и описаний элементов интерфейса. Сервис хранит проекты, запускает для них аудиты, создаёт замечания и показывает отчёт. Анализ основан на простых правилах: исходный код **не выполняется**, а дизайн оценивается по переданным характеристикам элементов.
+BitRate is a small REST API for checking Python code and basic UI design details. You can create projects, run audits, review findings, and see a score report. It is a student project built with Python, FastAPI, and Pydantic.
 
-## Быстрый запуск
+The checks use simple rules. The API **does not run submitted Python code**. For design audits, it checks the element details you send in the request.
 
-Нужен Python 3.10 или новее. Выполняйте команды из корня репозитория.
+## Run the project
+
+You need Python 3.10 or newer. Run these commands from the project folder.
 
 **Windows PowerShell**
 
@@ -24,64 +26,66 @@ python -m pip install -r requirements-dev.txt
 python -m uvicorn app.main:app --reload
 ```
 
-Откройте <http://127.0.0.1:8000/docs> для Swagger UI. Проверка доступности: <http://127.0.0.1:8000/health>.
+Open <http://127.0.0.1:8000/docs> to use Swagger UI. You can also open <http://127.0.0.1:8000/health> to check that the server is running.
 
-## Как работает приложение
+## How it works
 
-1. Создайте **проект**. Его имя должно быть уникальным без учёта регистра.
-2. Запустите **аудит** проекта: `code` для Python или `design` для списка элементов интерфейса. Аудит сразу создаёт замечания.
-3. Просмотрите **замечания**, отметьте исправленные и получите **отчёт**. История аудитов сохраняется, пока существует проект.
+1. **Create a project.** Project names must be unique, even if the letter case is different.
+2. **Run an audit.** Choose `code` for Python code or `design` for a list of UI elements. The audit creates findings when it detects problems.
+3. **Review the findings.** Mark a finding as resolved, or reopen it. The report shows the original score and the score for findings that are still open.
 
-Связи: один проект → много аудитов → много замечаний. Удаление проекта удаляет его аудиты и замечания. Все данные находятся **в оперативной памяти** и пропадают после перезапуска сервера.
+One project can have many audits, and one audit can have many findings. You can run a new audit without deleting older ones. Deleting a project also deletes its audits and findings.
 
-### Правила и оценка
+Data is stored **in memory**. It is cleared when the server restarts.
 
-- Код: синтаксические ошибки, вызовы `eval`/`exec`, возможные секреты в строковых литералах, функции длиннее 30 строк.
-- Дизайн: отсутствие подписи у интерактивного элемента, контраст текста ниже 4.5:1, шрифт меньше 14 px, переданная ширина или высота интерактивной области меньше 44 px.
-- Начальная оценка: `max(0, 100 - сумма штрафов)`. Штрафы: low — 5, medium — 10, high — 20, critical — 30.
-- Начальная оценка аудита не меняется. Текущая оценка в отчёте считает только **открытые** замечания. Статус `resolved` означает, что пользователь сообщил об исправлении; повторная проверка кода требует нового аудита.
+### Checks and scores
 
-Это учебные эвристики, а не полноценный анализ безопасности или визуальная оценка готовой страницы. Сервис не загружает URL и репозитории.
+- **Code:** Python syntax errors, calls to `eval` or `exec`, possible hardcoded secrets, and functions longer than 30 lines.
+- **Design:** missing labels on interactive elements, text contrast below 4.5:1, font size below 14 px, and provided interactive width or height below 44 px.
+- **Score:** starts at 100. Each finding removes points: low = 5, medium = 10, high = 20, critical = 30. The score cannot go below 0.
+- **Report:** `initial_score` includes all findings from the audit. `current_score` includes only open findings.
 
-## API
+Marking a finding as resolved means that a user says it was fixed. To check the changed code or design again, run a new audit. These checks are for a class project; they are not a full security scan or a visual review of a real web page.
 
-Все предметные пути начинаются с `/api/v1`.
+## API endpoints
 
-| Метод | Путь | Действие |
+All project, audit, and finding endpoints start with `/api/v1`.
+
+| Method | Path | What it does |
 |---|---|---|
-| POST | `/projects` | Создать проект |
-| GET | `/projects` | Список; `search`, `offset`, `limit` |
-| GET | `/projects/{project_id}` | Получить проект |
-| PATCH | `/projects/{project_id}` | Изменить имя или описание |
-| DELETE | `/projects/{project_id}` | Удалить проект и связанные данные |
-| POST | `/projects/{project_id}/audits` | Запустить аудит |
-| GET | `/projects/{project_id}/audits` | История; `kind`, `offset`, `limit` |
-| GET | `/audits/{audit_id}` | Получить аудит |
-| GET | `/audits/{audit_id}/findings` | Замечания; `severity`, `status`, `offset`, `limit` |
-| PATCH | `/audits/{audit_id}/findings/{finding_id}` | Закрыть или вновь открыть замечание |
-| GET | `/audits/{audit_id}/report` | Отчёт и оценки |
+| POST | `/projects` | Create a project |
+| GET | `/projects` | List projects; supports `search`, `offset`, and `limit` |
+| GET | `/projects/{project_id}` | Get one project |
+| PATCH | `/projects/{project_id}` | Change a project's name or description |
+| DELETE | `/projects/{project_id}` | Delete a project and its related data |
+| POST | `/projects/{project_id}/audits` | Run a code or design audit |
+| GET | `/projects/{project_id}/audits` | List audits; supports `kind`, `offset`, and `limit` |
+| GET | `/audits/{audit_id}` | Get one audit |
+| GET | `/audits/{audit_id}/findings` | List findings; supports `severity`, `status`, `offset`, and `limit` |
+| PATCH | `/audits/{audit_id}/findings/{finding_id}` | Resolve or reopen a finding |
+| GET | `/audits/{audit_id}/report` | Get scores and finding counts |
 
-Для списков `offset >= 0`, `1 <= limit <= 100`; по умолчанию `offset=0`, `limit=20`. ID имеют формат UUID.
+List endpoints use `offset=0` and `limit=20` by default. `offset` must be 0 or higher, and `limit` must be between 1 and 100. IDs use the UUID format.
 
-### Примеры запросов в Swagger
+## Try it in Swagger UI
 
-**1. POST `/api/v1/projects`**
+In <http://127.0.0.1:8000/docs>, open an endpoint, click **Try it out**, enter the data, and click **Execute**.
+
+**1. Create a project:** `POST /api/v1/projects`
 
 ```json
-{"name": "Demo", "description": "Учебный проект"}
+{"name": "Demo", "description": "My class project"}
 ```
 
-Скопируйте `id` из ответа. Новый ресурс возвращается со статусом **201**.
+The response has status **201**. Copy the project's `id` for the next request.
 
-**2. POST `/api/v1/projects/{project_id}/audits`**
-
-Аудит кода:
+**2. Run a code audit:** `POST /api/v1/projects/{project_id}/audits`
 
 ```json
 {"kind": "code", "source": "password = 'demo'\neval('2 + 2')"}
 ```
 
-Или аудит дизайна:
+You can also run a design audit:
 
 ```json
 {
@@ -100,44 +104,44 @@ python -m uvicorn app.main:app --reload
 }
 ```
 
-Скопируйте `id` аудита. Получите замечания через `GET /api/v1/audits/{audit_id}/findings`.
+Copy the audit's `id`, then use `GET /api/v1/audits/{audit_id}/findings` to see its findings.
 
-**3. PATCH `/api/v1/audits/{audit_id}/findings/{finding_id}`**
+**3. Resolve a finding:** `PATCH /api/v1/audits/{audit_id}/findings/{finding_id}`
 
 ```json
-{"status": "resolved", "resolution_note": "Убрал eval из кода"}
+{"status": "resolved", "resolution_note": "Removed the eval call"}
 ```
 
-Для повторного открытия отправьте `{"status": "open"}`. Затем запросите `GET /api/v1/audits/{audit_id}/report` и сравните `initial_score` и `current_score`.
+To reopen it, send `{"status": "open"}`. Use `GET /api/v1/audits/{audit_id}/report` to compare `initial_score` and `current_score`.
 
-### Ошибки
+### Error responses
 
-- **422** — неверный UUID, пустое имя, неизвестное поле, неверный тип аудита или отсутствие комментария при закрытии замечания. Формат ответа — стандартный FastAPI `detail`.
-- **404** — ресурс не найден или замечание не относится к указанному аудиту.
-- **409** — имя проекта уже занято или статус замечания уже установлен.
+- **422:** invalid input, such as an empty name, a wrong UUID, an unknown audit type, or a missing resolution note. FastAPI returns a `detail` field.
+- **404:** a project, audit, or finding does not exist, or a finding belongs to a different audit.
+- **409:** a project name is already taken, or a finding already has the requested status.
 
-Для ошибок предметной области ответ имеет вид `{"error": {"code": "...", "message": "..."}}`.
+Business errors use this JSON format: `{"error": {"code": "...", "message": "..."}}`.
 
-## Структура
+## Project structure
 
 ```text
 app/
-  main.py                  создание FastAPI-приложения и хранилища
-  api/routes/              HTTP-маршруты
-  api/dependencies.py      доступ к хранилищу
-  schemas/                 Pydantic-модели запросов и ответов
-  services/                правила и операции с данными
-  repositories/memory.py   словари в памяти
-tests/test_api.py          проверки сквозных сценариев через TestClient
-docs/                     схема архитектуры и чеклист Swagger
+  main.py                  creates the FastAPI app and data store
+  api/routes/              API endpoints
+  api/dependencies.py      gives routes access to the data store
+  schemas/                 Pydantic request and response models
+  services/                business rules and audit checks
+  repositories/memory.py   in-memory data store
+tests/test_api.py          API tests
+docs/                     architecture notes and Swagger checklist
 ```
 
-Маршрут принимает запрос и вызывает сервис. Сервис проверяет правила и меняет данные в хранилище. Pydantic проверяет входные данные до вызова сервиса. Ошибки предметной области переводятся в HTTP-ответы общим обработчиком.
+Routes receive HTTP requests and call services. Services apply the rules and work with the data store. Pydantic checks request data. One error handler turns business errors into HTTP responses.
 
-## Проверка
+## Run tests
 
 ```bash
 python -m pytest -q
 ```
 
-Тесты проверяют успешные сценарии, неверные запросы, конфликты и каскадное удаление. Для ручной демонстрации каждого маршрута в `/docs` есть [чеклист](docs/swagger-checklist.md).
+The tests cover successful requests, invalid input, conflicts, and deletion of related data. The [Swagger checklist](docs/swagger-checklist.md) gives steps for a manual demo of every endpoint.
