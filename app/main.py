@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.api.error_handlers import register_error_handlers
 from app.api.router import router
 from app.api.routes.health import router as health_router
+from app.repositories.memory import MemoryStore
 
 
 def create_app() -> FastAPI:
@@ -12,6 +13,7 @@ def create_app() -> FastAPI:
         description="Independent code/security and frontend design assessments.",
     )
     register_error_handlers(application)
+    application.state.store = MemoryStore()
     application.include_router(health_router)
     application.include_router(router)
     return application
