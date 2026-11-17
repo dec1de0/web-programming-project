@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from app.schemas.common import RequestSchema
 
@@ -27,10 +27,13 @@ class DesignAuditCreate(RequestSchema):
     elements: list[DesignElement] = Field(min_length=1, max_length=100)
 
 
-AuditCreate = Annotated[CodeAuditCreate | DesignAuditCreate, Field(discriminator="kind")]
+AuditCreate = Annotated[
+    CodeAuditCreate | DesignAuditCreate, Field(discriminator="kind")
+]
 
 
 class AuditRead(RequestSchema):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
     project_id: UUID
     kind: Literal["code", "design"]

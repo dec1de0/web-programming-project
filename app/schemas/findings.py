@@ -1,7 +1,7 @@
 from typing import Literal
 from uuid import UUID
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from app.schemas.common import RequestSchema
 
@@ -10,6 +10,7 @@ FindingStatus = Literal["open", "resolved"]
 
 
 class FindingRead(RequestSchema):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
     audit_id: UUID
     rule_id: str

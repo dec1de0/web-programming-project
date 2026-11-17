@@ -1,0 +1,78 @@
+[
+  {
+    "key": "create",
+    "result": "\nCode\tDetails\n201\t\nResponse body\nDownload\n{\n  \"name\": \"PostgreSQL Swagger demo\",\n  \"description\": \"\",\n  \"id\": \"85d713b4-e65e-44c1-b1dc-dadcdc1cbace\",\n  \"created_at\": \"2026-11-17T07:34:31.889002Z\",\n  \"updated_at\": \"2026-11-17T07:34:31.889007Z\"\n}\nResponse headers\n content-length: 181 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:31 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "create",
+    "result": "\nCode\tDetails\n409\t\n\nError: Conflict\n\nResponse body\nDownload\n{\n  \"error\": {\n    \"code\": \"project_name_taken\",\n    \"message\": \"Project name already exists\"\n  }\n}\nResponse headers\n content-length: 79 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:31 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "create",
+    "result": "\nCode\tDetails\n422\t\n\nError: Unprocessable Content\n\nResponse body\nDownload\n{\n  \"detail\": [\n    {\n      \"type\": \"string_too_short\",\n      \"loc\": [\n        \"body\",\n        \"name\"\n      ],\n      \"msg\": \"String should have at least 1 character\",\n      \"input\": \"\",\n      \"ctx\": {\n        \"min_length\": 1\n      }\n    }\n  ]\n}\nResponse headers\n content-length: 144 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:32 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "createAudit",
+    "result": "\nCode\tDetails\n201\t\nResponse body\nDownload\n{\n  \"id\": \"3c0535b8-020f-4535-ada2-b310729fa509\",\n  \"project_id\": \"85d713b4-e65e-44c1-b1dc-dadcdc1cbace\",\n  \"kind\": \"code\",\n  \"rules_version\": \"1\",\n  \"created_at\": \"2026-11-17T07:34:34.048474Z\",\n  \"initial_score\": 60\n}\nResponse headers\n content-length: 193 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:33 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "health",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"status\": \"ok\",\n  \"service\": \"BitRate\"\n}\nResponse headers\n content-length: 35 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:43 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "list",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"items\": [\n    {\n      \"name\": \"PostgreSQL Swagger demo\",\n      \"description\": \"\",\n      \"id\": \"85d713b4-e65e-44c1-b1dc-dadcdc1cbace\",\n      \"created_at\": \"2026-11-17T12:34:31.889002+05:00\",\n      \"updated_at\": \"2026-11-17T12:34:31.889007+05:00\"\n    }\n  ],\n  \"total\": 1,\n  \"offset\": 0,\n  \"limit\": 20\n}\nResponse headers\n content-length: 235 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:45 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "get",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"name\": \"PostgreSQL Swagger demo\",\n  \"description\": \"\",\n  \"id\": \"85d713b4-e65e-44c1-b1dc-dadcdc1cbace\",\n  \"created_at\": \"2026-11-17T12:34:31.889002+05:00\",\n  \"updated_at\": \"2026-11-17T12:34:31.889007+05:00\"\n}\nResponse headers\n content-length: 191 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:46 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "patch",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"name\": \"PostgreSQL Swagger demo\",\n  \"description\": \"Saved in PostgreSQL\",\n  \"id\": \"85d713b4-e65e-44c1-b1dc-dadcdc1cbace\",\n  \"created_at\": \"2026-11-17T12:34:31.889002+05:00\",\n  \"updated_at\": \"2026-11-17T07:34:49.159004Z\"\n}\nResponse headers\n content-length: 205 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:48 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "audits",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"items\": [\n    {\n      \"id\": \"3c0535b8-020f-4535-ada2-b310729fa509\",\n      \"project_id\": \"85d713b4-e65e-44c1-b1dc-dadcdc1cbace\",\n      \"kind\": \"code\",\n      \"rules_version\": \"1\",\n      \"created_at\": \"2026-11-17T12:34:34.048474+05:00\",\n      \"initial_score\": 60\n    }\n  ],\n  \"total\": 1,\n  \"offset\": 0,\n  \"limit\": 20\n}\nResponse headers\n content-length: 242 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:50 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "audit",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"id\": \"3c0535b8-020f-4535-ada2-b310729fa509\",\n  \"project_id\": \"85d713b4-e65e-44c1-b1dc-dadcdc1cbace\",\n  \"kind\": \"code\",\n  \"rules_version\": \"1\",\n  \"created_at\": \"2026-11-17T12:34:34.048474+05:00\",\n  \"initial_score\": 60\n}\nResponse headers\n content-length: 198 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:52 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "findings",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"items\": [\n    {\n      \"id\": \"23c873ce-844e-437d-8a7f-d942f71c15c6\",\n      \"audit_id\": \"3c0535b8-020f-4535-ada2-b310729fa509\",\n      \"rule_id\": \"hardcoded_secret\",\n      \"description\": \"Possible hardcoded secret on line 1\",\n      \"recommendation\": \"Move secrets to environment variables.\",\n      \"severity\": \"high\",\n      \"status\": \"open\",\n      \"resolution_note\": null\n    },\n    {\n      \"id\": \"27f8b4fc-f1ea-41ca-8561-6de16d8df7b3\",\n      \"audit_id\": \"3c0535b8-020f-4535-ada2-b310729fa509\",\n      \"rule_id\": \"unsafe_call\",\n      \"description\": \"eval() on line 2\",\n      \"recommendation\": \"Avoid executing dynamic code.\",\n      \"severity\": \"high\",\n      \"status\": \"open\",\n      \"resolution_note\": null\n    }\n  ],\n  \"total\": 2,\n  \"offset\": 0,\n  \"limit\": 20\n}\nResponse headers\n content-length: 594 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:54 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "resolve",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"id\": \"23c873ce-844e-437d-8a7f-d942f71c15c6\",\n  \"audit_id\": \"3c0535b8-020f-4535-ada2-b310729fa509\",\n  \"rule_id\": \"hardcoded_secret\",\n  \"description\": \"Possible hardcoded secret on line 1\",\n  \"recommendation\": \"Move secrets to environment variables.\",\n  \"severity\": \"high\",\n  \"status\": \"resolved\",\n  \"resolution_note\": \"Fixed in source\"\n}\nResponse headers\n content-length: 308 \n content-type: application/json \n date: Tue,17 Nov 2026 07:34:57 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "report",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"audit_id\": \"3c0535b8-020f-4535-ada2-b310729fa509\",\n  \"kind\": \"code\",\n  \"initial_score\": 60,\n  \"current_score\": 80,\n  \"open_count\": 1,\n  \"resolved_count\": 1,\n  \"score_rule\": \"100 minus 5/10/20/30 points per low/medium/high/critical finding\"\n}\nResponse headers\n content-length: 217 \n content-type: application/json \n date: Tue,17 Nov 2026 07:35:00 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "get",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"name\": \"PostgreSQL Swagger demo\",\n  \"description\": \"Saved in PostgreSQL\",\n  \"id\": \"85d713b4-e65e-44c1-b1dc-dadcdc1cbace\",\n  \"created_at\": \"2026-11-17T12:34:31.889002+05:00\",\n  \"updated_at\": \"2026-11-17T12:34:49.159004+05:00\"\n}\nResponse headers\n content-length: 210 \n content-type: application/json \n date: Tue,17 Nov 2026 07:35:23 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "report",
+    "result": "\nCode\tDetails\n200\t\nResponse body\nDownload\n{\n  \"audit_id\": \"3c0535b8-020f-4535-ada2-b310729fa509\",\n  \"kind\": \"code\",\n  \"initial_score\": 60,\n  \"current_score\": 80,\n  \"open_count\": 1,\n  \"resolved_count\": 1,\n  \"score_rule\": \"100 minus 5/10/20/30 points per low/medium/high/critical finding\"\n}\nResponse headers\n content-length: 217 \n content-type: application/json \n date: Tue,17 Nov 2026 07:35:24 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "resolve",
+    "result": "\nCode\tDetails\n409\t\n\nError: Conflict\n\nResponse body\nDownload\n{\n  \"error\": {\n    \"code\": \"status_unchanged\",\n    \"message\": \"Finding already has this status\"\n  }\n}\nResponse headers\n content-length: 81 \n content-type: application/json \n date: Tue,17 Nov 2026 07:35:25 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "del",
+    "result": "\nCode\tDetails\n204\t\nResponse headers\n date: Tue,17 Nov 2026 07:35:28 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "get",
+    "result": "\nCode\tDetails\n404\t\n\nError: Not Found\n\nResponse body\nDownload\n{\n  \"error\": {\n    \"code\": \"project_not_found\",\n    \"message\": \"Project not found\"\n  }\n}\nResponse headers\n content-length: 68 \n content-type: application/json \n date: Tue,17 Nov 2026 07:35:29 GMT \n server: uvicorn \n"
+  },
+  {
+    "key": "report",
+    "result": "\nCode\tDetails\n404\t\n\nError: Not Found\n\nResponse body\nDownload\n{\n  \"error\": {\n    \"code\": \"audit_not_found\",\n    \"message\": \"Audit not found\"\n  }\n}\nResponse headers\n content-length: 64 \n content-type: application/json \n date: Tue,17 Nov 2026 07:35:30 GMT \n server: uvicorn \n"
+  }
+]

@@ -1,6 +1,6 @@
 # BitRate API
 
-BitRate is a small REST API for checking Python code and basic UI design details. You can create projects, run audits, review findings, and see a score report. It is a student project built with Python, FastAPI, and Pydantic.
+BitRate is a small REST API for checking Python code and basic UI design details. You can create projects, run audits, review findings, and see a score report. It is a student project built with Python, FastAPI, Pydantic, PostgreSQL, SQLAlchemy and Alembic.
 
 The checks use simple rules. The API **does not run submitted Python code**. For design audits, it checks the element details you send in the request.
 
@@ -8,7 +8,7 @@ The checks use simple rules. The API **does not run submitted Python code**. For
 
 BitRate helps you find simple problems in code or UI elements and track which problems you have fixed. For example, it can find an `eval()` call in Python code or a button without a label. It creates a finding for each problem and shows a score in a report.
 
-This project is a **backend API**, so you use it through Swagger UI at `/docs`. It does not use AI, scan a website from a URL, or save data permanently. Its main purpose is to demonstrate a complete REST API with connected resources and useful business rules.
+This project is a **backend API**, so you use it through Swagger UI at `/docs`. It does not use AI or scan a website from a URL. Data is persisted in PostgreSQL. Its main purpose is to demonstrate a complete REST API with connected resources and useful business rules.
 
 ## Run the project
 
@@ -20,6 +20,8 @@ You need Python 3.10 or newer. Run these commands from the project folder.
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -r requirements-dev.txt
+# Configure PostgreSQL and .env as described below, then:
+python -m alembic upgrade head
 python -m uvicorn app.main:app --reload
 ```
 
@@ -29,8 +31,44 @@ python -m uvicorn app.main:app --reload
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
+# Configure PostgreSQL and .env as described below, then:
+python -m alembic upgrade head
 python -m uvicorn app.main:app --reload
 ```
+
+### Configure PostgreSQL before starting the backend
+
+Install and start PostgreSQL 17 (or a compatible PostgreSQL installation).
+Create a dedicated role and two databases using psql or pgAdmin as an administrator:
+
+```sql
+CREATE ROLE bitrate WITH LOGIN PASSWORD 'replace_with_your_password';
+CREATE DATABASE bitrate OWNER bitrate;
+CREATE DATABASE bitrate_test OWNER bitrate;
+```
+
+Copy `.env.example` to `.env` (`cp .env.example .env` on macOS/Linux,
+`Copy-Item .env.example .env` in PowerShell), then set your credentials and port:
+
+```dotenv
+DATABASE_URL=postgresql+psycopg://bitrate:YOUR_PASSWORD@localhost:5432/bitrate
+TEST_DATABASE_URL=postgresql+psycopg://bitrate:YOUR_PASSWORD@localhost:5432/bitrate_test
+```
+
+URL-encode special characters in passwords. Environment variables override `.env`.
+The `.env` file is ignored by Git; commit only `.env.example`.
+The app and Alembic load `.env` from the repository root. Run commands from that root.
+
+```bash
+python -m alembic upgrade head
+python -m alembic current
+python -m uvicorn app.main:app --reload
+```
+
+Tables are created by migrations, not by `create_all()` on startup.
+For a later schema change: `python -m alembic revision --autogenerate -m "description"`,
+review the generated migration, then apply it with `upgrade head`.
+`downgrade base` drops all application tables: use it only on a disposable database.
 
 Open <http://127.0.0.1:8000/docs> to use Swagger UI. You can also open <http://127.0.0.1:8000/health> to check that the server is running.
 
@@ -42,7 +80,7 @@ Open <http://127.0.0.1:8000/docs> to use Swagger UI. You can also open <http://1
 
 One project can have many audits, and one audit can have many findings. You can run a new audit without deleting older ones. Deleting a project also deletes its audits and findings.
 
-Data is stored **in memory**. It is cleared when the server restarts.
+Data is stored in **PostgreSQL** and remains available after backend restarts.
 
 ### Checks and scores
 
@@ -132,17 +170,19 @@ Business errors use this JSON format: `{"error": {"code": "...", "message": "...
 
 ```text
 app/
-  main.py                  creates the FastAPI app and data store
+  main.py                  application lifespan and database engine
   api/routes/              API endpoints
-  api/dependencies.py      gives routes access to the data store
+  api/dependencies.py      request session, commit, rollback and close
   schemas/                 Pydantic request and response models
   services/                business rules and audit checks
-  repositories/memory.py   in-memory data store
+  database.py              environment configuration and session factory
+  models.py                SQLAlchemy tables and relationships
+alembic/                   versioned schema migrations
 tests/test_api.py          API tests
 docs/                     architecture notes and Swagger checklist
 ```
 
-Routes receive HTTP requests and call services. Services apply the rules and work with the data store. Pydantic checks request data. One error handler turns business errors into HTTP responses.
+Routes receive HTTP requests and call services. Services apply the rules and query PostgreSQL through SQLAlchemy sessions. Pydantic checks request data. One error handler turns business errors into HTTP responses.
 
 ## Run tests
 
@@ -150,4 +190,35 @@ Routes receive HTTP requests and call services. Services apply the rules and wor
 python -m pytest -q
 ```
 
+Tests require TEST_DATABASE_URL pointing to a **separate disposable database ending in `_test`**.
+They apply Alembic migrations and erase test data; one test drops and recreates test tables.
+Without TEST_DATABASE_URL, database tests are skipped.
+
 The tests cover successful requests, invalid input, conflicts, and deletion of related data. The [Swagger checklist](docs/swagger-checklist.md) gives steps for a manual demo of every endpoint.
+
+## PostgreSQL verification
+
+On 17 November 2026: **7 integration tests passed** against PostgreSQL 17.12.
+Alembic upgrade, downgrade/upgrade and schema comparison passed. All 12 operations
+were executed in Swagger UI, including validation/conflict/not-found responses.
+A real Uvicorn process restart preserved a project, its audit and resolved finding.
+See [verification](docs/swagger-checklist.md) and [changed files](docs/database-changes.md).
+
+The local verification used PostgreSQL on `127.0.0.1:55432` and API port `8001`
+to avoid existing services. A local ignored `.env` is already configured on this Mac.
+To start that installed database again (separate terminal, keep running):
+
+```bash
+/opt/homebrew/opt/postgresql@17/bin/postgres -D /opt/homebrew/var/postgresql@17 -p 55432 -h 127.0.0.1 -k /tmp
+```
+
+For this existing checkout, the virtual environment is one directory above the repository:
+
+```bash
+source ../.venv/bin/activate
+python -m alembic upgrade head
+python -m uvicorn app.main:app --reload --port 8001
+```
+
+This local Homebrew cluster uses its default local authentication; other team members
+should configure their own role, password and `.env` as shown above.

@@ -1,62 +1,55 @@
-from datetime import datetime, timezone
-from uuid import UUID, uuid4
-
-from app.errors import ResourceConflict, ResourceNotFound
-from app.repositories.memory import MemoryStore
+from uuid import UUID
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+from app.models import Project
+from app.errors import ResourceNotFound
 from app.schemas.projects import ProjectCreate, ProjectList, ProjectRead, ProjectUpdate
 
 
-def get_project(store: MemoryStore, project_id: UUID) -> ProjectRead:
-    with store.lock:
-        project = store.projects.get(project_id)
-        if project is None:
-            raise ResourceNotFound("Project not found", code="project_not_found")
-        return project.model_copy(deep=True)
+def get_project(session: Session, project_id: UUID, *, lock=False):
+    query = select(Project).where(Project.id == project_id)
+    if lock:
+        query = query.with_for_update()
+    project = session.scalar(query)
+    if project is None:
+        raise ResourceNotFound("Project not found", code="project_not_found")
+    return project
 
 
-def list_projects(store: MemoryStore, search: str | None, offset: int, limit: int) -> ProjectList:
-    with store.lock:
-        items = list(store.projects.values())
-        if search:
-            items = [item for item in items if search.casefold() in item.name.casefold()]
-        items.sort(key=lambda item: item.created_at)
-        return ProjectList(
-            items=[item.model_copy(deep=True) for item in items[offset:offset + limit]],
-            total=len(items), offset=offset, limit=limit,
+def list_projects(session: Session, search, offset, limit):
+    query = select(Project)
+    if search:
+        query = query.where(
+            Project.name_key.contains(search.casefold(), autoescape=True)
         )
+    total = session.scalar(select(func.count()).select_from(query.subquery()))
+    items = session.scalars(
+        query.order_by(Project.created_at, Project.id).offset(offset).limit(limit)
+    ).all()
+    return ProjectList(
+        items=[ProjectRead.model_validate(p, from_attributes=True) for p in items],
+        total=total,
+        offset=offset,
+        limit=limit,
+    )
 
 
-def create_project(store: MemoryStore, data: ProjectCreate) -> ProjectRead:
-    with store.lock:
-        if any(item.name.casefold() == data.name.casefold() for item in store.projects.values()):
-            raise ResourceConflict("Project name already exists", code="project_name_taken")
-        now = datetime.now(timezone.utc)
-        project = ProjectRead(id=uuid4(), name=data.name, description=data.description,
-                              created_at=now, updated_at=now)
-        store.projects[project.id] = project
-        return project.model_copy(deep=True)
+def create_project(session: Session, data: ProjectCreate):
+    project = Project(**data.model_dump(), name_key=data.name.casefold())
+    session.add(project)
+    session.flush()
+    return project
 
 
-def update_project(store: MemoryStore, project_id: UUID, data: ProjectUpdate) -> ProjectRead:
-    with store.lock:
-        project = get_project(store, project_id)
-        values = data.model_dump(exclude_unset=True)
-        name = values.get("name", project.name)
-        if any(item.id != project_id and item.name.casefold() == name.casefold()
-               for item in store.projects.values()):
-            raise ResourceConflict("Project name already exists", code="project_name_taken")
-        updated = project.model_copy(update={**values, "updated_at": datetime.now(timezone.utc)})
-        store.projects[project_id] = updated
-        return updated.model_copy(deep=True)
+def update_project(session: Session, project_id: UUID, data: ProjectUpdate):
+    project = get_project(session, project_id, lock=True)
+    for key, value in data.model_dump(exclude_unset=True).items():
+        setattr(project, key, value)
+    project.name_key = project.name.casefold()
+    session.flush()
+    return project
 
 
-def delete_project(store: MemoryStore, project_id: UUID) -> None:
-    with store.lock:
-        get_project(store, project_id)
-        audit_ids = {item.id for item in store.audits.values() if item.project_id == project_id}
-        for finding_id, finding in list(store.findings.items()):
-            if finding.audit_id in audit_ids:
-                del store.findings[finding_id]
-        for audit_id in audit_ids:
-            del store.audits[audit_id]
-        del store.projects[project_id]
+def delete_project(session: Session, project_id: UUID):
+    session.delete(get_project(session, project_id, lock=True))
+    session.flush()

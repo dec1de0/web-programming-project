@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from app.schemas.common import RequestSchema
 
@@ -32,6 +32,7 @@ class ProjectUpdate(RequestSchema):
 
 
 class ProjectRead(ProjectCreate):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
     created_at: datetime
     updated_at: datetime
